@@ -1,5 +1,5 @@
 <!-- Made for Environmental Hacks by Neil Emmanuel Mathias and Ancilla Teresa D'Souza -->
-# Ecolens — See the Air You Breathe
+# Ecolens - See the Air You Breathe
 
 Ecolens is a precision environmental stewardship and navigation platform designed to paint the air quality, heat, and carbon reality of every street around you in real time. It bridges satellite atmospheric physics, hyperlocal air sensor networks, and human mobility, empowering commuters, sensitive individuals, and students to navigate cities while minimizing toxic pollutant inhalation and carbon footprint.
 
