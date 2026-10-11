@@ -1,0 +1,64 @@
+# ==============================================================================
+# AWS Finch Container Compose Configuration
+# ==============================================================================
+# Built for AWS Finch (Open-source container development CLI tool by AWS).
+# Run on your machine: finch compose up --build
+# No Docker Desktop license required.
+# ==============================================================================
+
+version: '3.8'
+
+services:
+  ecolens-backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: ecolens-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=EcoLens API
+      - USE_LOCALSTACK=false
+      - USE_OPENSEARCH=false
+      - USE_CEDAR_POLICIES=false
+      - USE_AWS_BEDROCK=false
+    volumes:
+      - ./Backend/generated_audio:/app/generated_audio
+    restart: unless-stopped
+
+  ecolens-frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: ecolens-frontend
+    ports:
+      - "8080:8080"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - ecolens-backend
+    restart: unless-stopped
+
+  # Optional local AWS emulation services for evaluation
+  localstack:
+    image: localstack/localstack:latest
+    container_name: ecolens-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3,lambda
+      - DEFAULT_REGION=us-east-1
+    profiles:
+      - aws-mock
+
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: ecolens-opensearch
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    profiles:
+      - aws-mock

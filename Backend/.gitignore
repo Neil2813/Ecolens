@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Database files
+*.db
+*.sqlite3
+fallback.db
+
+# Configuration and environment secrets (allow .env.example)
+.env
+.env.local
+.env.*.local
+.env.dev
+.env.prod
+.env.test
+!.env.example
+
+# Generated audio tour MP3s & temporary scratch scripts
+generated_audio/*.mp3
+scratch/
+
+# Assistant logs and debug outputs
+assistant_log.txt
+assistant_debug.json
+*.log
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

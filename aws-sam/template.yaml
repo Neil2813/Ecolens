@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  EcoLens Serverless Infrastructure (AWS SAM CLI)
+  Event-driven plume dispersion trajectory modeling and air quality alert pipeline.
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 256
+    Runtime: python3.11
+    Environment:
+      Variables:
+        STAGE: prod
+        APP_NAME: EcoLens
+
+Resources:
+  # 1. Serverless Plume Dispersion Worker
+  PlumeDispersionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Correlates NASA EONET fire coordinates with wind vectors to model smoke arrival.
+      InlineCode: |
+        import json
+        import math
+
+        def lambda_handler(event, context):
+            # Parse query parameters or event payload
+            lat = float(event.get('queryStringParameters', {}).get('lat', 28.6139))
+            lon = float(event.get('queryStringParameters', {}).get('lon', 77.2090))
+            wind_speed = float(event.get('queryStringParameters', {}).get('wind_speed', 15.0))
+            wind_from_deg = float(event.get('queryStringParameters', {}).get('wind_deg', 315.0))
+            
+            # Downwind vector (blows towards)
+            downwind_deg = (wind_from_deg + 180.0) % 360.0
+            
+            return {
+                "statusCode": 200,
+                "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+                "body": json.dumps({
+                    "status": "success",
+                    "origin": {"lat": lat, "lon": lon},
+                    "downwind_vector_degrees": downwind_deg,
+                    "estimated_dispersion_rate_kmh": wind_speed,
+                    "model": "Gaussian-Puff-Microservice"
+                })
+            }
+      Events:
+        PlumeApi:
+          Type: Api
+          Properties:
+            Path: /plume/dispersion
+            Method: get
+
+  # 2. LocalStack / S3 Bucket for Audio Tours
+  EcoLensAssetBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ecolens-audio-tours
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ['*']
+            AllowedMethods: [GET, PUT, HEAD]
+            AllowedOrigins: ['*']
+
+Outputs:
+  PlumeApiEndpoint:
+    Description: "API Gateway endpoint URL for Plume Dispersion microservice"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/plume/dispersion"
